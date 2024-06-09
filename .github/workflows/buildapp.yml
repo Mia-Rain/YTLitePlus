@@ -107,10 +107,8 @@ jobs:
           rm -rf main/tmp/Payload/YouTube.app/_CodeSignature/CodeResources
           rm -rf main/tmp/Payload/YouTube.app/PlugIns/*
           cp -R main/Extensions/*.appex main/tmp/Payload/YouTube.app/PlugIns
-          echo "YTLITE_VERSION=$(grep ^PACKAGE_VERSION ${{ github.workspace }}/main/Tweaks/YTLite/Makefile | awk '{print $3}')" >> $GITHUB_ENV
-          LATEST_RELEASE=$(curl -s "https://api.github.com/repos/dayanch96/YTLite/releases/latest" | jq -r ".tag_name")
-          YTLITE_VERSION=$(echo "$LATEST_RELEASE" | sed 's/v//')
-          echo "YTLITE_VERSION=$YTLITE_VERSION" >> $GITHUB_ENV
+          echo "YTLITE_VERSION=$YTLITE_VERSION" >> >$GITHUB_OUTPUT
+
         env:
           THEOS: ${{ github.workspace }}/theos
           YOUTUBE_URL: ${{ inputs.decrypted_youtube_url }}
@@ -140,11 +138,16 @@ jobs:
           name: YTLitePlus_${{ env.YT_VERSION }}_${{ env.YTLITE_VERSION }}
           path: ${{ github.workspace }}/main/packages/${{ steps.build_package.outputs.package }}
           if-no-files-found: error
+          
+      - name: Upload Artifact to Catbox
+        run: |
+           CATBOX_URL=$(curl -F "reqtype=fileupload" -F "fileToUpload=@${{ github.workspace }}/main/packages/${{ steps.build_package.outputs.package }}" https://catbox.moe/user/api.php | jq -r '.success.url')
+            echo "Uploaded artifact to $CATBOX_URL"
       
       - name: Prepare Release Notes
         run: |
           export TODAY=$(date '+%Y-%m-%d')
-          sed "s/%ytliteplus_version%/${{ env.YTLITE_VERSION }}/g; s/%youtube_version%/${{ env.YT_VERSION }}/g; s/%date%/$TODAY/g" \
+          sed "s/%ytliteplus_version%/${{ env.YTLITE_VERSION }}/g; s/%youtube_version%/${{ env.YT_VERSION }}/g; s/%date%/$TODAY/g; s/%catbox_url%/$CATBOX_FILE/g" \
           main/.github/RELEASE_TEMPLATE/Release.md > ${{ github.workspace }}/release_notes.md
 
       - name: Create Release
