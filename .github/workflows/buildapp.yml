@@ -107,7 +107,7 @@ jobs:
           rm -rf main/tmp/Payload/YouTube.app/_CodeSignature/CodeResources
           rm -rf main/tmp/Payload/YouTube.app/PlugIns/*
           cp -R main/Extensions/*.appex main/tmp/Payload/YouTube.app/PlugIns
-          echo "YTLITE_VERSION=$YTLITE_VERSION" >> >$GITHUB_OUTPUT
+          echo "YTLITE_VERSION=$YTLITE_VERSION" >> >$GITHUB_ENV
 
         env:
           THEOS: ${{ github.workspace }}/theos
